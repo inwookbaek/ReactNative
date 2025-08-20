@@ -30,6 +30,19 @@ export default function TabLayout() {
             }} 
           />
           <Tabs.Screen 
+            name="users" 
+            options={{ 
+              title: "Users",
+              tabBarIcon: ({ color, size, focused }) => (
+                <MaterialIcons 
+                  name="people" 
+                  size={focused ? size + 2 : size}
+                  color={focused ? '#9C27B0' : color}
+                />
+              ),
+            }} 
+          />          
+          <Tabs.Screen 
             name="post" 
             options={{ 
               title: "Post",
@@ -66,19 +79,6 @@ export default function TabLayout() {
                   name="dashboard" 
                   size={focused ? size + 2 : size}
                   color={focused ? '#FF4500' : color}
-                />
-              ),
-            }} 
-          />
-          <Tabs.Screen 
-            name="users" 
-            options={{ 
-              title: "Users",
-              tabBarIcon: ({ color, size, focused }) => (
-                <MaterialIcons 
-                  name="people" 
-                  size={focused ? size + 2 : size}
-                  color={focused ? '#9C27B0' : color}
                 />
               ),
             }} 

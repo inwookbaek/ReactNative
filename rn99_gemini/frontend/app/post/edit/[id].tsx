@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import PostForm, { PostFormData } from '../../components/PostForm';
-import { ActivityIndicator, Text } from 'react-native-paper';
+import { Button, ActivityIndicator, Text } from 'react-native-paper';
 import axios from 'axios';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const API_URL = 'http://10.0.2.2:3001'; // 안드로이드 에뮬레이터용 localhost
 
@@ -66,7 +67,16 @@ export default function EditPostScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: `게시글 수정` }} />
+      <View style={styles.headerContainer}>
+        <Button 
+          mode="text" 
+          onPress={() => router.back()}
+          icon={() => <MaterialIcons name="arrow-back" size={24} color="#000" />}
+          style={styles.backButton}
+        >
+          뒤로가기
+        </Button>
+      </View>
       <PostForm 
         initialValues={postData}
         onInputChange={handleInputChange}
@@ -76,3 +86,17 @@ export default function EditPostScreen() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+  },
+  headerContainer: {
+    marginBottom: 16,
+  },  
+  backButton: {
+    alignSelf: 'flex-start',
+  },  
+});

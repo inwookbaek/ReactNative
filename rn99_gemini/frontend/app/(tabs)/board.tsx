@@ -2,9 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Pressable, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Searchbar, Card, ActivityIndicator, Text } from 'react-native-paper';
+import { Searchbar, Card, ActivityIndicator, Text, Button } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
+import { useUser } from '../contexts/UserContext';
 
 // 게시글 데이터 타입 정의
 interface Post {
@@ -18,6 +19,7 @@ interface Post {
 const API_URL = 'http://10.0.2.2:3001'; // 안드로이드 에뮬레이터용 localhost
 
 export default function BoardScreen() {
+  const { user } = useUser();
   const [posts, setPosts] = useState<Post[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [search, setSearch] = useState('');
@@ -109,6 +111,21 @@ export default function BoardScreen() {
     );
   };
 
+  const handleAddPost = () => {
+    if (!user.id) {
+      Alert.alert('로그인 필요', '게시글 작성을 위해서는 로그인이 필요합니다.');
+      return;
+    }
+    router.push('/post/create');
+  };
+
+  const handlePostPress = (post: Post) => {
+    console.log('Current user ID:', user.id);
+    console.log('Post author ID:', post.userId);
+    // 게시글 상세 보기로 이동 (타입 단언 추가)
+    router.push(`/post/${post.id}` as any);
+  };
+
   const renderItem = ({ item }: { item: Post }) => (
     <Card style={styles.cardContainer}>
       <Card.Content style={styles.cardContent}>
@@ -116,7 +133,15 @@ export default function BoardScreen() {
           <MaterialIcons name="article" size={30} color="white" />
         </View>
         <View style={styles.postInfoContainer}>
-          <Text style={styles.itemId}>글번호: {item.id}</Text>
+          <Pressable 
+            onPress={() => handlePostPress(item)}
+            style={({ pressed }) => [
+              styles.idButton,
+              pressed && styles.idButtonPressed
+            ]}
+          >
+            <Text style={styles.itemId}>글번호: {item.id}</Text>
+          </Pressable>
           <Text style={styles.itemTitle}>{item.title}</Text>
           <Text style={styles.itemBody} numberOfLines={2}>{item.body}</Text>
         </View>
@@ -142,12 +167,27 @@ export default function BoardScreen() {
 
   return (
     <View style={styles.container}>
-      <Searchbar
-        placeholder="게시글 제목으로 검색..."
-        onChangeText={handleSearch}
-        value={search}
-        style={styles.searchbar}
-      />
+      <View style={styles.header}>
+        <Text style={styles.welcomeText}>
+          {user.username ? `${user.username}님 환영합니다!` : '로그인 해주세요'}
+        </Text>
+      </View>
+      <View style={styles.searchContainer}>
+        <Searchbar
+          placeholder="검색"
+          onChangeText={setSearch}
+          value={search}
+          style={styles.searchBar}
+        />
+        <Button 
+          mode="contained" 
+          onPress={handleAddPost}
+          style={styles.addButton}
+          icon="plus"
+        >
+          추가
+        </Button>
+      </View>
       <FlatList
         data={filteredPosts}
         renderItem={renderItem}
@@ -168,8 +208,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  searchbar: {
-    margin: 16,
+  header: {
+    padding: 10,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  welcomeText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    padding: 10,
+    backgroundColor: '#fff',
+  },
+  searchBar: {
+    flex: 1,
+    marginRight: 10,
+  },
+  addButton: {
+    justifyContent: 'center',
   },
   cardContainer: {
     marginVertical: 8,
@@ -218,5 +277,17 @@ const styles = StyleSheet.create({
   iconButton: {
     paddingTop: 5,
     marginLeft: 5,
+  },
+  idButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  idButtonPressed: {
+    backgroundColor: '#e0e0e0',
+    opacity: 0.8,
   },
 });

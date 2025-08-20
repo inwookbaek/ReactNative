@@ -1,5 +1,4 @@
-import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import { View, StyleSheet, Text } from 'react-native';
 
 export default function HomeScreen() {
   return (
@@ -17,7 +16,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'mediumseagreen'
   },
   title: {
-    fontSize: 24,
+    color: 'white',
+    fontSize: 20,
     fontWeight: 'bold',
   },
 });

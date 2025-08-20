@@ -40,13 +40,58 @@ pool.on('error', (err) => {
 // 사용자 목록 조회
 app.get('/users', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM users');
+        const [rows] = await pool.query('SELECT * FROM users order by name');
         res.json(rows);
     } catch (error) {
         console.error('사용자 조회 오류:', error);
         res.status(500).json({ 
             success: false,
             message: '사용자 목록을 불러오는 중 오류가 발생했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// login
+app.get('/user/login', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM users where email = ?', [req.query.email]);
+        res.json(rows);
+    } catch (error) {
+        console.error('사용자 조회 오류:', error);
+        res.status(500).json({ 
+            success: false,
+            message: '사용자를 찾지 못했습니다.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+
+// 게시글 추가
+app.post('/posts', async (req, res) => {
+    const { title, body, userId } = req.body;
+    console.log(userId);
+    const [result] = await pool.query('SELECT max(id) + 1 as id FROM posts');
+    const lastId = result[0].id;
+    // console.log(result[0].id)
+
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO posts (id, userId, title, body) VALUES (?, ?, ?, ?)', 
+            [lastId, userId, title, body]
+          );
+          res.json({
+            success: true,
+            message: '게시글이 성공적으로 추가되었습니다.',
+            data: result // ResultSetHeader { ... }
+          });
+          // console.log(result)
+    } catch (error) {
+        console.error('게시글 추가 오류:', error);
+        res.status(500).json({
+            success: false,
+            message: '게시글 추가 중 오류가 발생했습니다.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -103,7 +148,7 @@ app.put('/posts/:id', async (req, res) => {
 // 게시글 목록 조회
 app.get('/posts', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM posts');
+        const [rows] = await pool.query('SELECT * FROM posts order by id desc');
         res.json(rows);
     } catch (error) {
         console.error('게시글 조회 오류:', error);
@@ -120,7 +165,7 @@ app.get('/posts/:id', async (req, res) => {
     const { id } = req.params;
     
     try {
-        const [rows] = await pool.query('SELECT * FROM posts WHERE id = ? order by id desc', [id]);  
+        const [rows] = await pool.query('SELECT * FROM posts WHERE id = ?', [id]);  
 
         if (rows.length === 0) {
             return res.status(404).json({

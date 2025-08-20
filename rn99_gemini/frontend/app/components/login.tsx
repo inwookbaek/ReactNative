@@ -2,35 +2,66 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Alert, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TextInput, Button, Text, Switch } from 'react-native-paper';
+import axios from 'axios';
+import { useUser } from '../contexts/UserContext';
+
+const API_URL = 'http://10.0.2.2:3001'; // 안드로이드 에뮬레이터용 localhost
 
 // 로그인 UI 컴포넌트
-const LoginForm = ({ onClose, onLoginSuccess }) => {
+const LoginForm = ({ onClose, onLoginSuccess }: { onClose: () => void; onLoginSuccess: () => void }) => {
+  
+  const { login } = useUser();
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setLoading(true);
     // Email regex validation
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       Alert.alert('입력 오류', '올바른 이메일 형식이 아닙니다.');
+      setLoading(false);
       return;
     }
 
     // Password regex validation (at least 8 chars, 1 letter, 1 number)
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d&,=-]{8,}$/;
     if (!passwordRegex.test(password)) {
       Alert.alert(
         '입력 오류',
         '비밀번호는 8자 이상이어야 하며, 영문자와 숫자를 모두 포함해야 합니다.'
       );
+      setLoading(false);
       return;
     }
 
-    // 실제 로그인 로직 (예: API 호출) 은 여기에 구현합니다.
-    Alert.alert('로그인 성공', `이메일: ${email}, 관리자: ${isAdmin}`);
-    console.log('Login attempt with:', { email, password, isAdmin });
-    onLoginSuccess(); // 로그인 성공 시 콜백 호출
+    try {
+      const response = await axios.get(`${API_URL}/user/login`, { params: { email } });
+      const userData = response.data[0];
+      
+      if (!userData) {
+        throw new Error('사용자를 찾을 수 없습니다.');
+      }
+
+      // 사용자 정보를 전역 상태에 저장
+      login({
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        isAdmin: userData.isAdmin || false,
+      });
+
+      console.log('Login successful:', { id: userData.id, username: userData.username });
+      Alert.alert('로그인 성공', `${userData.username}님 환영합니다!`);
+      onLoginSuccess();
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('오류', '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
