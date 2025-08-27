@@ -1,12 +1,14 @@
-import { router } from "expo-router";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { router, useNavigation } from "expo-router";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import axios from "axios";
 import { API_URL } from "../contexts/appConfig";
 import { useUser } from "../contexts/UserContext";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function Index() {
 
+  const navigation = useNavigation();
   const { user, login, logout } = useUser()
 
   const [isIdHovered, setIsIdHovered] = useState(false);
@@ -17,6 +19,15 @@ export default function Index() {
   const [password, setPassword] = useState('');
   const [isIdFocused, setIsIdFocused] = useState(false);
   const [isPwFocused, setIsPwFocused] = useState(false);
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
+
+  useEffect(() => {
+    if (user.isLoggedIn) {
+      setShowWelcomeMessage(true);
+    } else {
+      setShowWelcomeMessage(false);
+    }   
+  }, [user.isLoggedIn]);
 
   const handleLoginPress = async () => {
 
@@ -30,15 +41,18 @@ export default function Index() {
       const userData = response.data;
 
       login({
-        email: userData.email,
+        email: userData.email, // Assuming the API returns email
         name: userData.name,  
         phone: userData.phone,
       });
 
       console.log('Login successful:', userData);
 
-      // 로그인 로직 구현
-      console.log('Login attempt with:', user.name, user.email, password);
+      // 3초 후에 환영 메시지 숨기기
+      setTimeout(() => {
+        setShowWelcomeMessage(false);
+      }, 3000);
+
       // 로그인 성공 시 홈 화면으로 이동
       router.replace('/(tabs)/home');
 
@@ -48,30 +62,38 @@ export default function Index() {
     }
 
   };
-
+  
   const handleFindIdPress = () => {
-    console.log('Find ID pressed');
+    // console.log('Find ID pressed');
+    alert('사용자아이디 찾기!!!');
     // 아이디 찾기 화면으로 이동
   };
-
+  
   const handleFindPasswordPress = () => {
-    console.log('Find Password pressed');
+    // console.log('Find Password pressed');
+    alert('비밀번호 찾기!!!');
     // 비밀번호 찾기 화면으로 이동
   };
 
   const handleRegisterPress = () => {
-    console.log('Register pressed');
+    // console.log('Register pressed');
     // 회원가입 화면으로 이동
+    router.push('/(users)/create');
   };
 
   const handleLogoutPress = () => {
     logout();
+    setShowWelcomeMessage(false); // Hide welcome message immediately on logout
     console.log('Logout pressed');
+  };
+
+  const handleMenuOpen = () => { // This function is for opening the drawer navigator
+    (navigation as any).toggleDrawer();
   };
 
   return (
     <View style={styles.container}>
-      {!user.isLoggedIn ? (
+      {!user?.isLoggedIn ? (
         <View style={styles.formContainer}>
           <TextInput
             style={[
@@ -130,14 +152,31 @@ export default function Index() {
             </Pressable>
           </View>
         </View>
-      ) : (
+      ) : showWelcomeMessage ? (
         <View style={styles.formContainer}>
           <Text style={styles.loginSuccessText}>{user.name}님! 환영합니다!</Text>
           <Pressable style={styles.logoutButton} onPress={handleLogoutPress}>
             <Text style={styles.buttonText}>Logout</Text>
           </Pressable>
         </View>
-      )}
+      ) : user?.isLoggedIn && (
+          <View style={styles.userActions}>
+            <View style={styles.buttonsContainer}>  
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleLogoutPress}
+              >
+                <MaterialIcons name="logout" size={24} color="#ffffff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleMenuOpen}
+              >
+                <MaterialIcons name="menu" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
     </View>
   );
 }
@@ -224,5 +263,23 @@ const styles = StyleSheet.create({
   },
   linkHover: {
     backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  },
+  userActions: {
+    position: 'absolute',
+    top: 30,
+    left: 10,
+    zIndex: 1,
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    gap: 10, // 버튼 사이 간격
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

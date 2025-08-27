@@ -55,6 +55,7 @@ app.get('/users', async (req, res) => {
 // login
 app.get('/user/login', async (req, res) => {
     try {
+        console.log("===> ", req.query.email);
         const [rows] = await pool.query('SELECT * FROM users where email = ?', [req.query.email]);
         res.json(rows);
     } catch (error) {
@@ -98,8 +99,8 @@ app.post('/posts', async (req, res) => {
 });
 
 // 게시글 수정
-app.put('/posts/:id', async (req, res) => {
-    const { id } = req.params;
+app.put('/posts/:email', async (req, res) => {
+    const { email } = req.params;
     const { title, body } = req.body;
 
     if (!title || !body) {
@@ -111,8 +112,8 @@ app.put('/posts/:id', async (req, res) => {
 
     try {
         const [result] = await pool.query(
-            'UPDATE posts SET title = ?, body = ? WHERE id = ?',
-            [title, body, id]
+            'UPDATE posts SET title = ?, body = ? WHERE email = ?',
+            [title, body, email]
         );
 
         if (result.affectedRows === 0) {
@@ -124,8 +125,8 @@ app.put('/posts/:id', async (req, res) => {
 
         // 업데이트된 게시글 조회
         const [updatedPost] = await pool.query(
-            'SELECT * FROM posts WHERE id = ?',
-            [id]
+            'SELECT * FROM posts WHERE email = ?',
+            [email]
         );
 
         res.json({
@@ -161,43 +162,43 @@ app.get('/posts', async (req, res) => {
 });
 
 // 특정 게시글 조회
-app.get('/posts/:id', async (req, res) => {
-    const { id } = req.params;
+app.get('/posts/:email', async (req, res) => {
+    const { email } = req.params;
     
     try {
-        const [rows] = await pool.query('SELECT * FROM posts WHERE id = ?', [id]);  
+      const [rows] = await pool.query('SELECT * FROM posts WHERE email = ?', [email]);  
 
-        if (rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: '해당하는 게시글을 찾을 수 없습니다.'
-            });
-        }
-
-        res.json({
-            success: true,
-            data: rows[0]
+      if (rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: '해당하는 게시글을 찾을 수 없습니다.'
         });
+      }
+
+      res.json({
+        success: true,
+        data: rows[0]
+      });
     } catch (error) {
         console.error('게시글 상세 조회 오류:', error);
         res.status(500).json({
-            success: false,
-            message: '게시글을 불러오는 중 오류가 발생했습니다.',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+          success: false,
+          message: '게시글을 불러오는 중 오류가 발생했습니다.',
+          error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
 
 // 게시글 삭제 API
-app.delete('/posts/:id', async (req, res) => {
+app.delete('/posts/:email', async (req, res) => {
     const connection = await pool.getConnection();
     try {
-        const { id } = req.params;
+        const { email } = req.params;
         
         // 게시글 존재 여부 확인
         const [existingPost] = await connection.query(
-            'SELECT * FROM posts WHERE id = ?',
-            [id]
+            'SELECT * FROM posts WHERE email = ?',
+            [email]
         );
 
         if (existingPost.length === 0) {
@@ -209,8 +210,8 @@ app.delete('/posts/:id', async (req, res) => {
 
         // 게시글 삭제
         await connection.query(
-            'DELETE FROM posts WHERE id = ?',
-            [id]
+            'DELETE FROM posts WHERE email = ?',
+            [email]
         );
 
         await connection.commit();

@@ -47,11 +47,11 @@ export default function MyPage() {
 
 const styles = StyleSheet.create({
   container: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: '#6A5ACD',
-      padding: 20,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#6A5ACD',
+    padding: 20,
   },
   profileImage: {
     width: 150,

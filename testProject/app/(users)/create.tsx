@@ -202,10 +202,10 @@ export default function CreateUser() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#9C27B0',
-    },
+  container: {
+      flex: 1,
+      backgroundColor: '#9C27B0',
+  },
     scrollView: {
         flex: 1,
     },
