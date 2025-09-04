@@ -1,12 +1,22 @@
 // app/(tabs)/_layout.tsx
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext'
+import { useEffect } from 'react';
 
 export default function TabLayout() {
 
   const { user } = useUser();
+
+  useEffect(() => {
+    // 로그인 상태에 따라 초기 화면 설정
+    if (!user?.isLoggedIn) {
+      router.replace('/(tabs)/users');
+    } else {
+      router.replace('/(tabs)/home');
+    }
+  }, [user?.isLoggedIn]);
 
   return (
     <Tabs

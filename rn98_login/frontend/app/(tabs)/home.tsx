@@ -5,10 +5,18 @@ import axios from "axios";
 import { API_URL } from "../contexts/appConfig";
 import { useUser } from "../contexts/UserContext";
 import { MaterialIcons } from "@expo/vector-icons";
+import { DrawerActions } from '@react-navigation/native';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
+
+type RootDrawerParamList = {
+  '(tabs)': undefined;
+};
+
+type NavigationProp = DrawerNavigationProp<RootDrawerParamList>;
 
 export default function Index() {
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { user, login, logout } = useUser()
 
   const [isIdHovered, setIsIdHovered] = useState(false);
@@ -87,8 +95,8 @@ export default function Index() {
     console.log('Logout pressed');
   };
 
-  const handleMenuOpen = () => { // This function is for opening the drawer navigator
-    (navigation as any).toggleDrawer();
+  const handleMenuOpen = () => { 
+    router.push('/(drawer)');
   };
 
   return (
@@ -152,7 +160,7 @@ export default function Index() {
             </Pressable>
           </View>
         </View>
-      ) : showWelcomeMessage ? (
+      ) : (!showWelcomeMessage && user?.isLoggedIn) ? (
         <View style={styles.formContainer}>
           <Text style={styles.loginSuccessText}>{user.name}님! 환영합니다!</Text>
           <Pressable style={styles.logoutButton} onPress={handleLogoutPress}>
@@ -162,17 +170,17 @@ export default function Index() {
       ) : user?.isLoggedIn && (
           <View style={styles.userActions}>
             <View style={styles.buttonsContainer}>  
+            <TouchableOpacity
+                style={styles.iconButton}
+                onPress={handleMenuOpen}
+              >
+                <MaterialIcons name="menu" size={24} color="#ffffff" />
+              </TouchableOpacity>              
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={handleLogoutPress}
               >
                 <MaterialIcons name="logout" size={24} color="#ffffff" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={handleMenuOpen}
-              >
-                <MaterialIcons name="menu" size={24} color="#ffffff" />
               </TouchableOpacity>
             </View>
           </View>
